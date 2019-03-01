@@ -1,40 +1,3 @@
-function getCurrentUnitandChapter() {
-    let index;
-    let currentUnit;
-    {
-        const opened_chapter = document.getElementsByClassName("chapter is-open")[0];
-        const ul = opened_chapter.getElementsByTagName("ul")[0];
-        const list = ul.getElementsByTagName("li");
-        const active_li = ul.getElementsByClassName("active")[0];
-
-        index = 0;
-        while (list[index] !== active_li) {
-            index++;
-        }
-        currentUnit = index + 1;
-    }
-
-    let currentChapter;
-    {
-        const navs = document.getElementsByTagName("nav");
-        let nav = null;
-        for (let i = 0; i < navs.length; i++) {
-            if (navs[i].getAttribute("aria-label") === "课程导航") {
-                nav = navs[i];
-                break;
-            }
-        }
-        const divs = nav.getElementsByTagName("div");
-
-        index = 0;
-        while (divs[index].getAttribute("class") !== "chapter is-open") {
-            index++;
-        }
-        currentChapter = index + 1;
-    }
-    return [currentUnit, currentChapter];
-}
-
 function open_next() {
     const opened_chapter = document.getElementsByClassName("chapter is-open")[0];
     const ul = opened_chapter.getElementsByTagName("ul")[0];
@@ -89,21 +52,21 @@ function open_nextChapter() {
         nextA.click();
     }
 }
-
+failure = 0;
 function play_video() {
     let videos = document.getElementsByTagName("video");
-    if (!videos.length) {
-        let currentUnit, currentChapter;
-        [currentUnit, currentChapter] = getCurrentUnitandChapter();
-        console.log("Chapter ", currentChapter, " Unit ", currentUnit, " failed to play video.")
-        open_next();
-        return;
-    }
-    let video = videos[0];
-    if (video.readyState !== 4) {
+    if (!videos.length || videos[0].readyState !== 4) {
+        if (window.failure++ > 7) {
+            if (confirm("视频播放失败，点击确定进入下一个视频")) {
+                open_next();
+            }
+            return;
+        }
+        console.log("no video or video not ready.")
         setTimeout(play_video, 1000);
         return;
     }
+    let video = videos[0];
     video.play().then(()=>{
         console.log("video is playing.");
     }).catch((e) => {
